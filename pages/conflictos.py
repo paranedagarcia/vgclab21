@@ -75,6 +75,13 @@ def df_filterfecha(message, df):
 local_css("style/style.css")
 
 # carga de datos
+# comunas
+try:
+    dfcomunas = load_data_csv("https://data.vgclab.cl/public_data/comunas.csv")
+except:
+    st.error("Error al cargar los datos de comunas")
+    st.stop()
+
 try:
     datos = "https://data.vgclab.cl/public_data/dataset_conflictos_2008-2020.csv"
     datos = "data/dataset_conflictos_2008-2020.csv"
@@ -83,9 +90,6 @@ except:
     st.error("Error al cargar los datos")
     st.stop()
 
-# df = pd.read_csv(datos, sep=";", encoding="utf-8", na_values=".")
-# df = df.rename(columns={0: 'medio'})
-# df["año"] = df["año"]+2000
 
 df['fecha'] = pd.to_datetime(df[['año', 'mes', 'dia']].astype(str).agg(
     '-'.join, axis=1), errors='coerce', format='mixed', dayfirst=True)
@@ -243,20 +247,13 @@ with tabTable:
 
 with tabIA:  # EDA IA
     st.subheader("Análisis exploratorio con Inteligencia Artificial")
-    st.write("El siguiente análisis es generado por un modelo de lenguaje de OpenAI, el cual permite realizar consultas sobre el dataset de conflictos. Ingrese su consulta la que pudiera ser respondida por el modelo en forma de texto o una imagen gráfica.")
-    st.write("Por ejemplo, puede preguntar: ¿Cuántos eventos de tipo 'X' ocurrieron en la región 'Y' en el año '2018'?")
-    st.divider()
-    # from pandasai import SmartDataframe
-    # from pandasai.llm import OpenAI
-    # from pandasai.responses.streamlit_response import StreamlitResponse
-
-    # # from langchain.llms import OpenAI
-    # from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-    # from langchain_experimental.agents.agent_toolkits import create_csv_agent
-
-    # load_dotenv()
-
-    # API_KEY = os.environ['OPENAI_API_KEY']
+    with st.expander("Información importante"):
+        st.write("Las respuestas son generadas por un modelo de lenguaje de OpenAI, el cual permite realizar consultas sobre el conjunto de datos. Ingrese su consulta la que pudiera ser respondida por el modelo en forma de texto o una imagen gráfica.")
+        st.write(
+            "Por ejemplo, puede preguntar: ¿Cuántos eventos de tipo 'X' ocurrieron en la región 'Y' en el año '2018'?")
+        st.warning(
+            "*Nota*: Esta es una tecnología en experimentación por lo que las respuestas pueden no ser del todo exactas.")
+    st.write("")
 
     user_path = os.getcwd()
     # llm = OpenAI(api_token=API_KEY)
@@ -265,35 +262,30 @@ with tabIA:  # EDA IA
 
     # agent = create_csv_agent(OpenAI(temperature=0.5), datos)
 
-    col1, col2 = st.columns(2, gap="medium")
+    prompt = st.text_area("Ingrese su consulta:")
 
-    with col1:
-        prompt = st.text_area("Ingrese su consulta:")
+    if st.button("Generar respuesta"):
+        if prompt:
+            with st.spinner("Generando respuesta... por favor espere."):
+                llm = OpenAI(api_token=os.environ["OPENAI_API_KEY"])
+                # query = SmartDataframe(df, config={"llm": llm})
+                query = Agent(df, config={"llm": llm,
+                                          "save_charts": False,
+                                          # "save_charts_path": user_path,
+                                          "open-charts": True,
+                                          "verbose": True,
+                                          "response_parser": StreamlitResponse
+                                          })
 
-        if st.button("Generar respuesta"):
-            if prompt:
-                with st.spinner("Generando respuesta... por favor espere."):
-                    llm = OpenAI(api_token=os.environ["OPENAI_API_KEY"])
-                    # query = SmartDataframe(df, config={"llm": llm})
-                    query = Agent(df, config={"llm": llm,
-                                              "save_charts": False,
-                                              # "save_charts_path": user_path,
-                                              "open-charts": True,
-                                              "verbose": True,
-                                              "response_parser": StreamlitResponse
-                                              })
+                response = query.chat(prompt)
 
-                    response = query.chat(prompt)
+                if isinstance(response, str) and response.endswith("png"):
+                    st.image(response)
+                else:
+                    st.write(response)
+        else:
+            st.write("Por favor ingrese una consulta.")
 
-                    if isinstance(response, str) and response.endswith("png"):
-                        st.image(response)
-                    else:
-                        st.write(response)
-            else:
-                st.write("Por favor ingrese una consulta.")
-
-    with col2:
-        st.write("")
 
 with tabBleau:  # graficos personalizados
     report = pgw.walk(df, return_html=True)

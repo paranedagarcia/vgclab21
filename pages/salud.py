@@ -3,55 +3,79 @@
 
 '''
 import os
-import streamlit as st
 import pandas as pd
-# from pandasai import PandasAI
-from pandasai import SmartDataframe
-from pandasai import SmartDatalake  # para multiples dataframes
+import numpy as np
+import time
+import streamlit as st
+import streamlit.components.v1 as components
+from streamlit_extras.metric_cards import style_metric_cards
+
+import base64
+from io import BytesIO
+from PIL import Image
+import plotly.express as px
+import plotly.graph_objects as go
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib.ticker import FuncFormatter
+from millify import millify
+import pygwalker as pgw
+# from pandasai import SmartDatalake  # para multiples dataframes
 from pandasai import Agent
 from pandasai.llm.openai import OpenAI
 from pandasai.responses.streamlit_response import StreamlitResponse
-import matplotlib.pyplot as plt
+
 from datetime import datetime
 from funciones import load_data_csv
 from dotenv import load_dotenv
 
 load_dotenv()
-user_path = os.getcwd()
-# Instantiate a LLM
-llm = OpenAI(api_token="OPENAI_API_TOKEN")
+API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
+openai_api_key = API_KEY
+
+# configuration
+st.set_page_config(
+    page_title="Maceda",
+    page_icon="🧊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# df = load_data_csv("https://data.vgclab.cl/public_data/dataset_licencias-2018-2021.csv")
+
+# --------------------------
+# METRICAS
+# --------------------------
+confirmadas = df[df["ESTADO"] == "CONFIRMADA"]
+confirmadas = confirmadas["ESTADO"].value_counts().tolist()
+confirmadas = sum(confirmadas)
 
 
-df = load_data_csv(
-    "https://data.vgclab.cl/public_data/dataset_licencias-2018-2021.csv")
-
+# --------------------------
+# MAIN
+# --------------------------
 tab1, tab2, tab3, tab4 = st.tabs(["Panel", "Tabla", "IA-EDA", "Análisis"])
 
 with tab1:
     st.write("Panel")
-    st.write(df.head(15))
+    col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
+    col1.metric("Confirmadas", millify(confirmadas, precision=0))
+    col2.metric("Regiones", 2)
+    col3.metric("Tipo de Actores", 2)
+    col4.metric(label="Ataques", value=2)
+    col5.metric(label="Protestas violentas", value=2)
+
+
 with tab2:
     st.write("Tabla")
 
 with tab3:
     st.write("IA-EDA")
-    # Create a SmartDataframe
-    sdf = SmartDataframe(df)
-    # Create a SmartDatalake
-    sdl = SmartDatalake()
-    # Add the SmartDataframe to the SmartDatalake
-    sdl.add_dataframe(sdf)
-    # Create an Agent
-    agent = Agent(llm, sdl)
-    # Create a StreamlitResponse
-    response = StreamlitResponse()
-    # Run the Agent
-    agent.run(response)
-    # Print the response
-    response.print()
+
 
 with tab4:
     st.write("Análisis")
 
 
-st.write(df.head(15))
+st.write("")

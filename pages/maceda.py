@@ -12,10 +12,6 @@ import time
 import streamlit as st
 import streamlit.components.v1 as components
 from streamlit_extras.metric_cards import style_metric_cards
-# revisar si se puede usar pandas-profiling
-# import pandas_profiling
-# from pandas_profiling import ProfileReport
-# from streamlit_pandas_profiling import st_profile_report
 
 import base64
 from io import BytesIO
@@ -37,10 +33,6 @@ from datetime import datetime
 from funciones import load_data_csv
 from dotenv import load_dotenv
 
-load_dotenv()
-
-API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
-openai_api_key = API_KEY
 
 # configuration
 st.set_page_config(
@@ -49,6 +41,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+load_dotenv()
+
+API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
+openai_api_key = API_KEY
 
 
 def local_css(file_name):
@@ -125,7 +122,9 @@ if region is not None:
 else:
     df = df
 
-# metricas
+# --------------------------
+# METRICAS
+# --------------------------
 eventos_totales = df["tipo de evento"].value_counts().tolist()
 eventos_totales = sum(eventos_totales)
 
@@ -134,6 +133,15 @@ regiones_totales = len(regiones_totales)
 
 actores_totales = df["actor principal"].unique().tolist()
 actores_totales = len(actores_totales)
+
+ataques = df[df["tipo de evento"] == "ATAQUE"]
+ataques = ataques["tipo de evento"].value_counts().tolist()
+ataques = sum(ataques)
+
+protesta_violenta = df[df["detalle de evento"] == "PROTESTA VIOLENTA"]
+protesta_violenta = protesta_violenta["tipo de evento"].value_counts().tolist()
+protesta_violenta = sum(protesta_violenta)
+
 
 # grafica tipos de eventos (tipo)
 eventos = df["tipo de evento"].unique().tolist()
@@ -172,15 +180,13 @@ with tabPanel:  # graficos
     col1.metric("Eventos", millify(eventos_totales, precision=2))
     col2.metric("Regiones", regiones_totales)
     col3.metric("Tipo de Actores", actores_totales)
-    col4.metric(label="", value=20)
-    col5.metric("", None)
+    col4.metric(label="Ataques", value=ataques)
+    col5.metric(label="Protestas violentas", value=protesta_violenta)
 
     style_metric_cards()
 
     col1, col2 = st.columns(2, gap="medium")
     with col1:
-        # st.subheader("Tipo de evento")
-        # st.plotly_chart(eventos_pie, use_container_width=True, title="Eventos en el tiempo")
 
         fig = px.pie(df, values=df["tipo de evento"].value_counts().tolist(), names=df["tipo de evento"].unique().tolist(),
                      title='Tipo de eventos')
@@ -204,18 +210,15 @@ with tabPanel:  # graficos
     st.plotly_chart(fig, use_container_width=True)
 
     # evolucion de eventos
-    #
-    # dt = df.groupby(df.fecha.dt.year)['tipo'].count()
-    # dt = df.groupby([(df.fecha.dt.year), (df.fecha.dt.month)])['tipo'].count()
 
-    serial = serie.groupby(
-        ['tipo de evento']).size().reset_index(name='cuenta')
+    # serial = serie.groupby(['tipo de evento']).size().reset_index(name='cuenta')
+    serial = df.groupby('tipo de evento').size().reset_index(name='cuenta')
     # serial.groupby('tipo')['cuenta'].plot(legend=True, xlabel="")
     fig = px.bar(
         serial,
         x="tipo de evento",
         y="cuenta",
-        title="Conflictos en el tiempo"
+        title="Cantidad de conflictos"
     )
     fig.update_layout(showlegend=False, xaxis_title='Tipo de evento')
     st.plotly_chart(fig, use_container_width=True)
@@ -263,7 +266,7 @@ with tabPanel:  # graficos
 
 with tabTable:  # tabla de datos
 
-    st.dataframe(df, height=600)
+    st.dataframe(df, height=500)
 
 with tabIA:  # EDA IA
     # col, cor = st.columns(2, gap="medium")
@@ -335,7 +338,9 @@ with tabInfo:
         st.write("MPD reporta información del conflicto entre el Estado Chileno y el pueblo mapuche. La Base de Datos de Eventos sobre el Conflicto Mapuche-Estado Chileno MACEDA (por su acrónimo en inglés) reporta más de 4500 eventos para el período 1990-2021.")
         st.write("")
         st.markdown(
-            "[Descargar datos](https://sites.google.com/view/danyjaimovich/links/mdp)")
+            "[Descargar datos (csv 2.2MB)](https://sites.google.com/view/danyjaimovich/links/mdp)")
+        st.markdown(
+            "[Documentación (377KB)](https://data.vgclab.cl/public_data/mdp_conflicto_maceda_codigos.pdf)")
         st.write("")
         st.write("Cómo citar:")
         st.write("Cayul, P., A. Corvalan, D. Jaimovich, and M. Pazzona (2022). Introducing MACEDA: New Micro-Data on an Indigenous Self-Determination Conflict. Journal of Peace Research ")

@@ -134,6 +134,7 @@ secrets.toml
 notebooks/
 data/
 .data
+Dev/
 
 # Spyder project settings
 .spyderproject
