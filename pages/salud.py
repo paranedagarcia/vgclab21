@@ -2,6 +2,7 @@
 '''
 
 '''
+# librerias
 import os
 import pandas as pd
 import numpy as np
@@ -30,9 +31,7 @@ from datetime import datetime
 from funciones import load_data_csv
 from dotenv import load_dotenv
 
-load_dotenv()
-API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
-openai_api_key = API_KEY
+from funciones import load_data_csv
 
 # configuration
 st.set_page_config(
@@ -42,7 +41,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# df = load_data_csv("https://data.vgclab.cl/public_data/dataset_licencias-2018-2021.csv")
+load_dotenv()
+API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
+openai_api_key = API_KEY
+
+df = load_data_csv(
+    "https://data.vgclab.cl/public_data/dataset_licencias_sample.csv")
 
 # --------------------------
 # METRICAS
@@ -55,9 +59,10 @@ confirmadas = sum(confirmadas)
 # --------------------------
 # MAIN
 # --------------------------
-tab1, tab2, tab3, tab4 = st.tabs(["Panel", "Tabla", "IA-EDA", "Análisis"])
+tabPanel, tabTable, tabIA, tabBleau, tabInfo = st.tabs(
+    ["Panel", "Tabla", "IA-EDA", "Análisis",  "Información"])
 
-with tab1:
+with tabPanel:
     st.write("Panel")
     col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
     col1.metric("Confirmadas", millify(confirmadas, precision=0))
@@ -66,16 +71,19 @@ with tab1:
     col4.metric(label="Ataques", value=2)
     col5.metric(label="Protestas violentas", value=2)
 
+    style_metric_cards()
 
-with tab2:
-    st.write("Tabla")
+with tabTable:
+    st.dataframe(df, height=500)
 
-with tab3:
+with tabIA:
     st.write("IA-EDA")
 
 
-with tab4:
-    st.write("Análisis")
+with tabBleau:
+    report = pgw.walk(df, return_html=True)
+    components.html(report, height=1000, scrolling=True)
 
-
-st.write("")
+with tabInfo:
+    st.write("Información")
+    st.write("")

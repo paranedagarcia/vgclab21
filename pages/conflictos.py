@@ -123,7 +123,18 @@ if medio is not 'Todos':
 else:
     df = df
 
-termino = st.sidebar.slider("Año de termino", 2008, 2020, 2020)
+# termino = st.sidebar.slider("Año de termino", 2008, 2020, 2020)
+
+# TIPO DE CONFLICTO SOCIAL
+tipos = df["Tipo de conflicto social"].unique().tolist()
+# tipos.insert(0, "Todos")
+
+tipoconflicto = st.sidebar.multiselect(
+    "Tipo de conflicto", tipos, default=tipos)
+if tipoconflicto is not None:
+    df = df[df["Tipo de conflicto social"].isin(tipoconflicto)]
+else:
+    df = df
 
 heridos_manifestantes = df["Manifestantes heridos"].sum()
 heridos_carabineros = df["Carabineros heridos"].sum()
@@ -136,8 +147,8 @@ muertos_personas = df["Personas muertas"].sum()
 # main
 st.subheader("Evolución de conflictos en Chile (2008 - 2020)")
 
-tabPanel, tabTable, tabIA, tabBleau, tabProfile = st.tabs(
-    ["Panel", "Tabla", "IA-EDA", "Análisis", "Perfil"])
+tabPanel, tabTable, tabIA, tabBleau, tabInfo = st.tabs(
+    ["Panel", "Tabla", "IA-EDA", "Análisis", "Información"])
 
 
 with tabPanel:
@@ -194,14 +205,40 @@ with tabPanel:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    col3, col4 = st.columns(2, gap="medium")
-    with col3:
-        st.write("Personas heridas")
+    # col3, col4 = st.columns(2, gap="medium")
+    # with col3:
+        # ACTOR DEMANDANTE
+    df_afectado = df.groupby(
+        'Actor demandante').size().reset_index(name='cuenta')
 
-    with col4:
-        st.write("otros")
+    fig = px.bar(
+        df_afectado,
+        y="Actor demandante",
+        x="cuenta",
+        color="Actor demandante",
+        title="Actores demandantes",
+        orientation="h", height=500
+    )
+    fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+    st.plotly_chart(fig, use_container_width=True)
 
-    #
+    # with col4:
+    # ACTOR DESTINO DE PROTESTA
+    df_afectado = df.groupby(
+        'Actor destino de protesta').size().reset_index(name='cuenta')
+
+    fig = px.bar(
+        df_afectado,
+        y="Actor destino de protesta",
+        x="cuenta",
+        color="Actor destino de protesta",
+        title="Actores afectados",
+        orientation="h", height=600
+    )
+    fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+    st.plotly_chart(fig, use_container_width=True)
+
+    # DESARROLLO DE CONFLICTOS EN EL TIEMPO
     #
     stiempo = df.groupby(['fecha', 'Tipo de conflicto social']
                          ).size().reset_index(name='cuenta')
@@ -291,8 +328,8 @@ with tabBleau:  # graficos personalizados
     report = pgw.walk(df, return_html=True)
     components.html(report, height=1000, scrolling=True)
 
-with tabProfile:
-    st.write("Perfil de datos")
+with tabInfo:
+    st.write("Información")
 
 
 # eliminar columnas

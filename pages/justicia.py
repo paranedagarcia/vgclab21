@@ -88,28 +88,18 @@ df['FECHA'] = pd.to_datetime(df['FECHA'], format='%Y-%m-%d')
 df['YEAR'] = df['FECHA'].dt.year
 
 delitos = df["DELITO"].unique().tolist()
-
-
+delitos = [x for x in delitos if str(x) != 'nan']
 delito_selection = st.sidebar.multiselect("Delitos:", delitos, [
                                           'Rb_Violencia_o_Intimidación', 'Rb_Sorpresa', 'Rb_Fuerza', 'Rb_Vehìculo', 'Hurtos'])
+if delito_selection is not None:
+    df = df[df["DELITO"].isin(delito_selection)]
+else:
+    df = df
 
-# medios involucrados
 
 # filter delitos
 # selected_unidad = st.sidebar.selectbox(
 #     "Seleccione agrupación", ["Ninguna", "Comuna", "Provincia", "Región"])
-
-df = df[df["DELITO"].isin(delito_selection)]
-
-# regiones = df["REGION"].unique().tolist()
-# regiones = [x for x in regiones if str(x) != 'nan']
-# region = st.sidebar.multiselect(
-#     "Seleccione una o mas regiones", regiones, default=regiones)
-
-# if region is not None:
-#     df = df[df["REGION"].isin(region)]
-# else:
-#     df = df
 
 st.subheader("Eficiencia de la Justicia")
 # st.subheader("Detenciones " + selected_unidad)
@@ -120,8 +110,22 @@ st.subheader("Eficiencia de la Justicia")
 detenciones_totales = df.shape[0]
 delitos_totales = df["DELITO"].nunique()
 
-tab1, tab2, tab3, tab4 = st.tabs(["Panel", "Tabla", "IA-EDA", "Análisis"])
-with tab1:
+# Calcula el total de casos para cada tipo de delito
+delitos_suma = df.groupby('DELITO')['CASOS'].sum().reset_index()
+
+# Calcula el total de casos para el cálculo del porcentaje
+total_cases = delitos_suma['CASOS'].sum()
+
+# Calcula el porcentaje de cada tipo de delito
+# crime_counts['Porcentaje'] = (crime_counts['CASOS'] / total_cases) * 100
+
+# Ordena los delitos por número de casos para obtener los delitos más comunes
+# crime_counts_sorted = crime_counts.sort_values('CASOS', ascending=False)
+
+tabPanel, tabTable, tabIA, tabBleau, tabInfo = st.tabs(
+    ["Panel", "Tabla", "IA-EDA", "Análisis", "Información"])
+
+with tabPanel:
 
     col1, col2, col3, col4 = st.columns(4, gap="medium")
     col1.metric("Total de detenciones", millify(
@@ -132,54 +136,34 @@ with tab1:
 
     style_metric_cards()
 
-    # if selected_unidad == "Comuna":
-    #     df = df.groupby(
-    #         ["COMUNA", "DELITO", "YEAR"]).agg({'CASOS': sum})
-
-    # elif selected_unidad == "Región":
-    #     df = df.groupby(
-    #         ["REGION", "DELITO", "YEAR"]).agg({'CASOS': sum})
-
-    # else:
-    #     pass
-
-    #
     det = df.groupby(["COMUNA", "DELITO", "YEAR"]).agg({'CASOS': sum})
-
-    # Carga de datos (asegúrate de ajustar la ruta del archivo según tu entorno)
-    # df = pd.read_csv('ruta/a/tu/dataset_detenciones.csv')
-
-    # Calcula el total de casos para cada tipo de delito
-    crime_counts = df.groupby('DELITO')['CASOS'].sum().reset_index()
-
-    # Calcula el total de casos para el cálculo del porcentaje
-    total_cases = crime_counts['CASOS'].sum()
-
-    # Calcula el porcentaje de cada tipo de delito
-    crime_counts['Porcentaje'] = (crime_counts['CASOS'] / total_cases) * 100
-
-    # Ordena los delitos por número de casos para obtener los delitos más comunes
-    crime_counts_sorted = crime_counts.sort_values('CASOS', ascending=False)
 
     col1, col2 = st.columns(2, gap="medium")
     with col1:
-        fig = px.pie(df, values=df["DELITO"].value_counts().tolist(), names=df["DELITO"].unique().tolist(),
-                     title='Porcentaje de casos por delito en todas las regiones')
+        st.write(".")
+        df_delitos = df.groupby(
+            'DELITO').size().reset_index(name='cuenta')
+
+        fig = px.bar(
+            df_delitos,
+            x="DELITO",
+            y="cuenta",
+            color="DELITO",
+            title="Delitos",
+        )
+        fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        st.write("2")
+        st.write(".")
+        fig = px.pie(df, values=df["DELITO"].sum().tolist(), names=df["DELITO"].unique().tolist(),
+                     title='DELITOS')
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Mostrar el gráfico en Streamlit
-    fig = px.bar(df, x="YEAR", y="CASOS",
-                 color="DELITO", title="Casos por año")
-    st.plotly_chart(fig, use_container_width=True)
-
-
-with tab2:
+with tabTable:
     st.dataframe(df, height=500)
 
-with tab3:  # EDA IA
+with tabIA:  # EDA IA
     st.subheader("Análisis exploratorio con Inteligencia Artificial")
     with st.expander("Información importante"):
         st.write("Las respuestas son generadas por un modelo de lenguaje de OpenAI, el cual permite realizar consultas sobre el dataset de MACEDA. Ingrese su consulta la que pudiera ser respondida por el modelo en forma de texto o una imagen gráfica.")
@@ -203,6 +187,17 @@ with tab3:  # EDA IA
             st.write("Por favor ingrese una consulta.")
 
 
-with tab4:
+with tabBleau:
     report = pgw.walk(df, return_html=True)
     components.html(report, height=1000, scrolling=True)
+
+
+with tabInfo:
+    st.write("Información")
+
+    st.write("Detenciones en Chile")
+    st.write("Fecha de actualización: ",
+             datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    st.write("Autor: Patricio Araneda")
+    st.write("Fuente: [Fundación Chile 21](https://chile21.cl/)")
+    st.write("San Sebastián 2807, Las Condes, Santiago de Chile")

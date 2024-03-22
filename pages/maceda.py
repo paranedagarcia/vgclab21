@@ -16,12 +16,14 @@ from streamlit_extras.metric_cards import style_metric_cards
 import base64
 from io import BytesIO
 from PIL import Image
+
 import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.ticker import FuncFormatter
+
 from millify import millify
 import pygwalker as pgw
 # from pandasai import SmartDatalake  # para multiples dataframes
@@ -171,8 +173,8 @@ eventos_tiempo = px.line(
 # --------------------------
 st.subheader("Conflictos Mapuches en Chile - MACEDA")
 
-tabPanel, tabTable, tabIA, tabBleau, tabProfile, tabInfo = st.tabs(
-    ["Panel", "Tabla", "IA-EDA", "Análisis", "Perfil", "Información"])
+tabPanel, tabTable, tabIA, tabBleau, tabInfo = st.tabs(
+    ["Panel", "Tabla", "IA-EDA", "Análisis",  "Información"])
 
 with tabPanel:  # graficos
 
@@ -199,26 +201,29 @@ with tabPanel:  # graficos
         st.plotly_chart(fig, use_container_width=True)
 
     # Actores involucrados
+
     df_actor1 = df.groupby('actor principal').size().reset_index(name='cuenta')
 
     fig = px.bar(
         df_actor1,
         x="actor principal",
         y="cuenta",
-        title="Actores participantes"
+        color="actor principal",
+        title="Actores participantes",
     )
+    fig.update_layout(showlegend=False, xaxis_title='Tipo de actor')
     st.plotly_chart(fig, use_container_width=True)
 
-    # evolucion de eventos
+    # cantidad de conflictos por tipo de evento
 
     # serial = serie.groupby(['tipo de evento']).size().reset_index(name='cuenta')
     serial = df.groupby('tipo de evento').size().reset_index(name='cuenta')
-    # serial.groupby('tipo')['cuenta'].plot(legend=True, xlabel="")
     fig = px.bar(
         serial,
         x="tipo de evento",
         y="cuenta",
-        title="Cantidad de conflictos"
+        title="Cantidad de conflictos",
+        color="tipo de evento"
     )
     fig.update_layout(showlegend=False, xaxis_title='Tipo de evento')
     st.plotly_chart(fig, use_container_width=True)
@@ -263,6 +268,50 @@ with tabPanel:  # graficos
                             ))
 
     st.plotly_chart(figserial, use_container_width=True)
+
+    col1, col2 = st.columns(2, gap="medium")
+    with col1:
+        # REGIONES
+
+        df_actor1 = df.groupby('region').size().reset_index(name='cuenta')
+
+        fig = px.bar(
+            df_actor1,
+            x="region",
+            y="cuenta",
+            color="region",
+            title="Casos por regiones",
+        )
+        fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        # ACTOR AFECTADO
+
+        df_afectado = df.groupby(
+            'actor afectado').size().reset_index(name='cuenta')
+
+        fig = px.bar(
+            df_afectado,
+            x="actor afectado",
+            y="cuenta",
+            color="actor afectado",
+            title="Actores afectados",
+        )
+        fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # COMUNA
+    df_comuna = df.groupby('comuna').size().reset_index(name='cuenta')
+    fig = px.bar(
+        df_comuna,
+        x="comuna",
+        y="cuenta",
+        color="comuna",
+        title="Casos por comuna",
+    )
+    fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+    st.plotly_chart(fig, use_container_width=True)
 
 with tabTable:  # tabla de datos
 
@@ -314,19 +363,6 @@ with tabBleau:  # graficos personalizados
     report = pgw.walk(df, return_html=True)
     components.html(report, height=1000, scrolling=True)
 
-
-with tabProfile:  # perfil de datos
-    st.write("Perfil de datos")
-    # pr = ProfileReport(df, explorative=True, minimal=True)
-    # st_profile_report(pr)
-
-    # chart_data = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
-
-    # st.bar_chart(chart_data)
-    # import pandas_profiling
-    # from streamlit_pandas_profiling import st_profile_report
-    # pr = df.profile_report(pr)
-    # st: profile_report(pr)
 
 with tabInfo:
     col, cor = st.columns(2, gap="medium")

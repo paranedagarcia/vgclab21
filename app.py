@@ -45,9 +45,9 @@ show_pages([Page("app.py", "Inicio"),
             Page("pages/conflictos.py", "Conflictos territoriales"),
             Page("pages/justicia.py", "Eficiencia de la Justicia"),
             Page("pages/salud.py", "Salud mental"),
-            Page("pages/testpdai.py", "testpdai"),
-            Page("pages/clientes.py", "Segmentación de clientes"),
-            Page("pages/ventas.py", "Ventas")
+            # Page("pages/testpdai.py", "testpdai"),
+            # Page("pages/clientes.py", "Segmentación de clientes"),
+            # Page("pages/ventas.py", "Ventas")
             # Page("pages/pinguinos.py", "Pinguinos"),
             # Page("pages/descuentos.py", "Descuentos"),
             # Page("pages/trees.py", "Arboles"),
