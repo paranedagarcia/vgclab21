@@ -140,31 +140,33 @@ with tabPanel:
 
     det = df.groupby(["COMUNA", "DELITO", "YEAR"]).agg({'CASOS': sum})
 
-    col1, col2 = st.columns(2, gap="medium")
-    with col1:
-        st.write(".")
-        fig = px.bar(
-            df,
-            x="DELITO",
-            y="CASOS",
-            color="DELITO",
-            title="Delitos",
-        )
-        fig.update_layout(showlegend=False, xaxis_title=None)
-        st.plotly_chart(fig, use_container_width=True)
+    dfcomuna = df.groupby('COMUNA')['CASOS'].sum().nlargest(
+        10).reset_index(name='suma')
+    dfcomuna = dfcomuna.sort_values(by='suma', ascending=False)
 
-    with col2:
-        st.write(".")
-        # fig = px.bar(
-        #     df,
-        #     x="REGION",
-        #     y="CASOS",
-        #     color="REGION",
-        #     title="Delitos en regiones",
-        # )
-        # fig.update_layout(showlegend=False, xaxis_title=None)
-        # st.plotly_chart(fig, use_container_width=True)
+    dfregion = df.groupby('REGION')['CASOS'].sum().reset_index(name='suma')
+    dfregion = dfregion.sort_values(by='suma', ascending=False)
 
+    fig = px.bar(dfregion, x='REGION', y='suma',
+                 title='Monto en Tubo por Comuna', color='REGION')
+    fig.update_layout(xaxis_title=None, yaxis_title='Monto en Tubo',
+                      legend_title=None, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+    fig = px.bar(dfcomuna, x='COMUNA', y='suma',
+                 title='Casos por Comuna')
+    fig.update_layout(xaxis_title=None, yaxis_title='Comuna',
+                      legend_title=None, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+    # DELITO
+    dfdelito = df.groupby('DELITO')['CASOS'].sum().reset_index(name='suma')
+    dfdelito = dfdelito.sort_values(by='suma', ascending=False)
+    fig = px.bar(dfdelito, x='COMUNA', y='suma',
+                 title='Casos por Comuna')
+    fig.update_layout(xaxis_title=None, yaxis_title='Comuna',
+                      legend_title=None, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 
 with tabTable:
     # st.dataframe(df, height=500)
