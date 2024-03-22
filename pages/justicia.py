@@ -107,6 +107,8 @@ st.subheader("Eficiencia de la Justicia")
 # --------------------------
 # METRICAS
 # --------------------------
+delito_mayor = df.groupby('DELITO')['CASOS'].sum().nlargest(
+    1).reset_index(name='max')
 
 # st.write("Total de detenciones: ", df.shape[0])
 detenciones_totales = df.shape[0]
@@ -128,12 +130,14 @@ tabPanel, tabTable, tabIA, tabBleau, tabInfo = st.tabs(
     ["Panel", "Tabla", "IA-EDA", "Análisis", "Información"])
 
 with tabPanel:
-
+    st.write(delito_mayor.iloc[0, 0] + " es el delito más común con " +
+             str(delito_mayor.iloc[0, 1]) + " casos.")
     col1, col2, col3, col4 = st.columns(4, gap="medium")
     col1.metric("Total de detenciones", millify(
         detenciones_totales, precision=2))
     col2.metric("Tipo de delitos", delitos_totales)
-    col3.metric("", None)
+    col3.metric(delito_mayor.iloc[0, 0], millify(
+        delito_mayor.iloc[0, 1], precision=2))
     col4.metric("", None)
 
     style_metric_cards()
@@ -148,23 +152,23 @@ with tabPanel:
     dfregion = dfregion.sort_values(by='suma', ascending=False)
 
     fig = px.bar(dfregion, x='REGION', y='suma',
-                 title='Monto en Tubo por Comuna', color='REGION')
-    fig.update_layout(xaxis_title=None, yaxis_title='Monto en Tubo',
+                 title='Casos por región', color='REGION')
+    fig.update_layout(xaxis_title=None, yaxis_title=None,
                       legend_title=None, showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
     fig = px.bar(dfcomuna, x='COMUNA', y='suma',
                  title='Casos por Comuna')
-    fig.update_layout(xaxis_title=None, yaxis_title='Comuna',
+    fig.update_layout(xaxis_title=None, yaxis_title=None,
                       legend_title=None, showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
     # DELITO
     dfdelito = df.groupby('DELITO')['CASOS'].sum().reset_index(name='suma')
     dfdelito = dfdelito.sort_values(by='suma', ascending=False)
-    fig = px.bar(dfdelito, x='COMUNA', y='suma',
-                 title='Casos por Comuna')
-    fig.update_layout(xaxis_title=None, yaxis_title='Comuna',
+    fig = px.bar(dfdelito, x='DELITO', y='suma',
+                 title='Delitos más comunes', color='DELITO')
+    fig.update_layout(xaxis_title=None, yaxis_title=None,
                       legend_title=None, showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
