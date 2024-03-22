@@ -185,17 +185,32 @@ with tabIA:  # EDA IA
         st.warning(
             "*Nota*: Esta es una tecnología en experimentación por lo que las respuestas pueden no ser del todo exactas.")
     st.write("")
-
+    # llm = OpenAI(api_token=API_KEY)
     llm = OpenAI(client=OpenAI, streaming=True,
                  api_token=API_KEY, temperature=0.5)
 
+    # with cor:
     prompt = st.text_area("Ingrese su consulta:")
 
     if st.button("Generar respuesta"):
         if prompt:
             with st.spinner("Generando respuesta... por favor espere."):
-                sdf = SmartDataframe(df, config={"llm": llm})
-                st.write(sdf.chat(prompt))
+                llm = OpenAI(api_token=os.environ["OPENAI_API_KEY"])
+                # query = SmartDataframe(df, config={"llm": llm})
+                query = Agent(df, config={"llm": llm,
+                                          "save_charts": False,
+                                          # "save_charts_path": user_path,
+                                          "open-charts": True,
+                                          "verbose": True,
+                                          "response_parser": StreamlitResponse
+                                          })
+
+                response = query.chat(prompt)
+
+                if isinstance(response, str) and response.endswith("png"):
+                    st.image(response)
+                else:
+                    st.write(response)
         else:
             st.write("Por favor ingrese una consulta.")
 
