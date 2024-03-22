@@ -104,7 +104,9 @@ else:
 st.subheader("Eficiencia de la Justicia")
 # st.subheader("Detenciones " + selected_unidad)
 
+# --------------------------
 # METRICAS
+# --------------------------
 
 # st.write("Total de detenciones: ", df.shape[0])
 detenciones_totales = df.shape[0]
@@ -141,27 +143,32 @@ with tabPanel:
     col1, col2 = st.columns(2, gap="medium")
     with col1:
         st.write(".")
-        df_delitos = df.groupby(
-            'DELITO').size().reset_index(name='cuenta')
-
         fig = px.bar(
-            df_delitos,
+            df,
             x="DELITO",
-            y="cuenta",
+            y="CASOS",
             color="DELITO",
             title="Delitos",
         )
-        fig.update_layout(showlegend=False, xaxis_title=None, yaxis_title=None)
+        fig.update_layout(showlegend=False, xaxis_title=None)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
         st.write(".")
-        fig = px.pie(df, values=df["DELITO"].sum().tolist(), names=df["DELITO"].unique().tolist(),
-                     title='DELITOS')
-        st.plotly_chart(fig, use_container_width=True)
+        # fig = px.bar(
+        #     df,
+        #     x="REGION",
+        #     y="CASOS",
+        #     color="REGION",
+        #     title="Delitos en regiones",
+        # )
+        # fig.update_layout(showlegend=False, xaxis_title=None)
+        # st.plotly_chart(fig, use_container_width=True)
+
 
 with tabTable:
-    st.dataframe(df, height=500)
+    # st.dataframe(df, height=500)
+    st.write(df.head(10))
 
 with tabIA:  # EDA IA
     st.subheader("Análisis exploratorio con Inteligencia Artificial")
