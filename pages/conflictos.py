@@ -84,7 +84,7 @@ except:
 
 try:
     datos = "https://data.vgclab.cl/public_data/dataset_conflictos_2008-2020.csv"
-    datos = "data/dataset_conflictos_2008-2020.csv"
+    # datos = "data/dataset_conflictos_2008-2020.csv"
     df = pd.read_csv(datos, sep=";", encoding="utf-8", na_values=".")
 except:
     st.error("Error al cargar los datos")
@@ -251,7 +251,7 @@ with tabPanel:
 
     figserial = px.line(stiempo, x="mes", y="cuenta", line_group="Tipo de conflicto social",
                         color="Tipo de conflicto social", markers=True)
-    figserial.update_layout(title='Desarrrollo de conflictos en el tiempo',
+    figserial.update_layout(title='Desarrrollo de conflictos',
                             xaxis_title='Fecha',
                             yaxis_title='No. de eventos',
                             showlegend=True,

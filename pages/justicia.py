@@ -142,26 +142,112 @@ with tabPanel:
     dfregion = df.groupby('REGION')['CASOS'].sum().reset_index(name='suma')
     dfregion = dfregion.sort_values(by='suma', ascending=False)
 
-    fig = px.bar(dfregion, x='REGION', y='suma',
-                 title='Casos por región', color='REGION')
-    fig.update_layout(xaxis_title=None, yaxis_title=None,
-                      legend_title=None, showlegend=False)
+    # ------------------------------------------------
+    # Tendencia de delitos a lo largo del tiempo
+
+    df['FECHA'] = pd.to_datetime(df['FECHA'])
+    delitos_por_fecha = df.groupby(
+        'FECHA')['CASOS'].sum().reset_index()
+
+    fig_tendencia_delitos = px.line(delitos_por_fecha, x='FECHA', y='CASOS', title='Tendencia de Delitos Violentos en el Tiempo en Chile', labels={
+                                    'FECHA': 'Fecha', 'CASOS': 'Número de Casos'})
+    fig_tendencia_delitos.update_layout(title={'xanchor': 'center', 'x': 0.5},)
+    st.plotly_chart(fig_tendencia_delitos, use_container_width=True)
+
+    # ------------------------------------------------
+    # Tendencia de delitos a por tipo en el tiempo
+    delitos_tipo_fecha = df.groupby(['FECHA', 'DELITO'])[
+        'CASOS'].sum().reset_index()
+    delitos_tipo_fecha.sort_values('FECHA', inplace=True)
+
+    fig = px.line(delitos_tipo_fecha, x='FECHA', y='CASOS', color='DELITO',
+                  title='Tendencia de Delitos Violentos por Tipo a lo Largo del Tiempo en Chile',
+                  labels={'FECHA': 'Fecha', 'CASOS': 'Número de Casos', 'DELITO': 'Tipo de Delito'})
+    fig.update_layout(xaxis_title='Fecha',
+                      yaxis_title='Número de Casos',
+                      legend_title='Tipo de Delito',
+                      title={'xanchor': 'center', 'x': 0.5})
     st.plotly_chart(fig, use_container_width=True)
 
-    fig = px.bar(dfcomuna, x='COMUNA', y='suma',
-                 title='Casos por Comuna')
-    fig.update_layout(xaxis_title=None, yaxis_title=None,
-                      legend_title=None, showlegend=False)
+    # ------------------------------------------------
+    st.subheader("Análisis de detenciones")
+
+    delitos_por_tipo = df.groupby(
+        'DELITO')['CASOS'].sum().reset_index()
+    delitos_por_tipo.sort_values('CASOS', ascending=False, inplace=True)
+
+    fig = px.bar(delitos_por_tipo, x='DELITO', y='CASOS',
+                 title='Distribución de Delitos por Tipo',
+                 labels={'DELITO': 'Tipo de Delito', 'CASOS': 'Número de Casos'})
+    fig.update_layout(xaxis_title='Tipo de Delito',
+                      yaxis_title='Número de Casos',
+                      xaxis_tickangle=-45,
+                      title={'xanchor': 'center', 'x': 0.5}
+                      )
     st.plotly_chart(fig, use_container_width=True)
 
-    # DELITO
-    dfdelito = df.groupby('DELITO')['CASOS'].sum().reset_index(name='suma')
-    dfdelito = dfdelito.sort_values(by='suma', ascending=False)
-    fig = px.bar(dfdelito, x='DELITO', y='suma',
-                 title='Delitos más comunes', color='DELITO')
-    fig.update_layout(xaxis_title=None, yaxis_title=None,
-                      legend_title=None, showlegend=False)
+    st.write("Distribución de delitos por tipo mostrando la frecuencia de cada tipo de delito en el conjunto de datos, lo que permite identificar los tipos de delitos más comunes.")
+    st.divider()
+    # ------------------------------------------------
+    st.subheader("Distribución geográfica de delitos")
+
+    delitos_por_region = df.groupby(
+        'REGION')['CASOS'].sum().reset_index()
+    delitos_por_region.sort_values('CASOS', ascending=False, inplace=True)
+
+    fig = px.bar(delitos_por_region, x='REGION', y='CASOS',
+                 title='Distribución Geográfica de Delitos por Región',
+                 labels={'REGION': 'Región', 'CASOS': 'Número de Casos'})
+    fig.update_layout(xaxis_title='Región',
+                      yaxis_title='Número de Casos',
+                      xaxis_tickangle=-45,
+                      title={'xanchor': 'center', 'x': 0.5}
+                      )
     st.plotly_chart(fig, use_container_width=True)
+
+    st.write("Distribución de los delitos por regiones o comunas, resaltando las áreas con mayor incidencia de delitos.")
+    st.divider()
+    # ------------------------------------------------
+
+    delitos_por_comuna = df.groupby(
+        'COMUNA')['CASOS'].sum().reset_index()
+    delitos_por_comuna.sort_values('CASOS', ascending=False, inplace=True)
+    top_comunas = delitos_por_comuna.head(25)
+
+    fig = px.bar(top_comunas, x='COMUNA', y='CASOS',
+                 title='Top 25 Comunas con Mayor Incidencia de Delitos',
+                 labels={'COMUNA': 'Comuna', 'CASOS': 'Número de Casos'},
+                 color='CASOS',  # Usar el número de casos para el color de las barras
+                 color_continuous_scale=px.colors.sequential.Viridis)
+    fig.update_layout(xaxis_title='Comuna',
+                      yaxis_title='Número de Casos',
+                      xaxis_tickangle=-45,
+                      title={'xanchor': 'center', 'x': 0.5}
+                      )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("Distribución comunal de delitos: distribución de los delitos por 'comuna' resaltando las comunas con mayor incidencia de delitos.")
+    st.divider()
+    # ------------------------------------------------
+
+    delitos_comuna_tipo = df.groupby(['COMUNA', 'DELITO'])[
+        'CASOS'].sum().reset_index()
+    top_comunas_list = delitos_por_comuna.head(10)['COMUNA'].tolist()
+    delitos_comuna_tipo_top = delitos_comuna_tipo[delitos_comuna_tipo['COMUNA'].isin(
+        top_comunas_list)]
+
+    fig = px.bar(delitos_comuna_tipo_top, x='COMUNA', y='CASOS', color='DELITO',
+                 title='Distribución de Delitos por Comuna, Diferenciando por Tipo de Delito',
+                 labels={'COMUNA': 'Comuna', 'CASOS': 'Número de Casos', 'DELITO': 'Tipo de Delito'})
+    fig.update_layout(xaxis_title='Comuna',
+                      yaxis_title='Número de Casos',
+                      legend_title='Tipo de Delito',
+                      xaxis_tickangle=-45,
+                      title={'xanchor': 'center', 'x': 0.5})
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.write("Distribución comunal de delitos: distribución de los delitos por 'comuna' diferenciando los tipos de delitos, resaltando las comunas con mayor incidencia de delitos.")
+    st.write("Este gráfico no solo destaca las comunas con la mayor incidencia total de delitos, sino que también muestra la proporción de diferentes tipos de delitos dentro de cada comuna, lo que proporciona una comprensión más profunda de la naturaleza de los delitos en estas áreas.")
 
 with tabTable:
     # st.dataframe(df, height=500)

@@ -55,9 +55,8 @@ load_dotenv()
 API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
 openai_api_key = API_KEY
 
-st.sidebar.image("images/vgclab-negro.jpg")
 
-filename = "data/dataset_licencias_sample.csv"
+filename = "https://data.vgclab.cl/public_data/dataset_licencias_sample.csv"
 
 columnas = ['FECHA', 'LICENCIA', 'FORMULARIO', 'TRABAJADOR', 'EMISION', 'INICIO', 'DIAS', 'CODIGO', 'TIPO', 'PROFESIONAL', 'ENTIDAD', 'CAJA', 'ESTADO', 'DESDE', 'HASTA',
             'DIASAUT', 'SUBSIDIO', 'CODAUT', 'AUTORIZACION', 'CODPREV', 'RECHAZO', 'SUBCIE10', 'GRUPOCIE10', 'CIE10', 'LIQUIDO', 'SUSESO']
@@ -72,6 +71,7 @@ dtipos = {
     'CODAUT': str,
     'CODPREV': str,
 }
+
 
 df = pd.read_csv(filename, encoding='utf-8', sep=",",
                  na_values='NA',
@@ -95,15 +95,18 @@ df['HASTA'] = pd.to_datetime(df['HASTA'])
 # else:
 #     pass
 
+st.sidebar.subheader("Licencias médicas ")
 # Filtro de rango de fechas
-min_date = df['DESDE'].min()
-max_date = df['HASTA'].max()
-date_start = st.sidebar.date_input('Desde', value=pd.to_datetime(min_date))
-date_end = st.sidebar.date_input('Hasta', value=pd.to_datetime(max_date))
+min_date = df['EMISION'].min()
+max_date = df['EMISION'].max()
+date_start = st.sidebar.date_input(
+    'Emisión desde', value=pd.to_datetime(min_date))
+date_end = st.sidebar.date_input(
+    'Emisión hasta', value=pd.to_datetime(max_date))
 
-# df = df[
-#     (df['INICIO'] >= pd.to_datetime(date_start)) &
-#     (df['HASTA'] <= pd.to_datetime(date_end))]
+df = df[
+    (df['EMISION'] >= pd.to_datetime(date_start)) &
+    (df['EMISION'] <= pd.to_datetime(date_end))]
 
 
 # Filtro por SUBCIE10
