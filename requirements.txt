@@ -143,6 +143,7 @@ pexpect @ file:///home/conda/feedstock_root/build_artifacts/pexpect_166729751607
 phik==0.12.4
 pickleshare @ file:///home/conda/feedstock_root/build_artifacts/pickleshare_1602536217715/work
 pillow==10.2.0
+pip==24.0
 platformdirs @ file:///home/conda/feedstock_root/build_artifacts/platformdirs_1701708255999/work
 plotly==5.14.1
 polars==0.20.13
