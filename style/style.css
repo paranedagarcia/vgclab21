@@ -22,3 +22,10 @@ dl {
 .st-af {
     font-size: .8rem !important;
 }
+
+.st-emotion-cache-16idsys p {
+    word-break: break-word;
+    margin-bottom: 0px;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}

@@ -318,8 +318,7 @@ with tabTable:  # tabla de datos
     st.dataframe(df, height=500)
 
 with tabIA:  # EDA IA
-    # col, cor = st.columns(2, gap="medium")
-    # with col:
+
     st.subheader("Análisis exploratorio con Inteligencia Artificial")
     with st.expander("Información importante"):
         st.write("Las respuestas son generadas por un modelo de lenguaje de OpenAI, el cual permite realizar consultas sobre el dataset de MACEDA. Ingrese su consulta la que pudiera ser respondida por el modelo en forma de texto o una imagen gráfica.")

@@ -49,15 +49,6 @@ API_KEY = st.secrets['OPENAI_API_KEY']  # os.environ['OPENAI_API_KEY']
 openai_api_key = API_KEY
 
 
-def read_csv_file(file_path):
-    with open(file_path, 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            date = row[0]
-            year = date.split('/')[2]
-            print(year)
-
-
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)

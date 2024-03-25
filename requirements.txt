@@ -152,6 +152,7 @@ requests==2.31.0
 rich==13.7.0
 rpds-py==0.17.1
 rsa==4.9
+scikit-learn==1.4.1.post1
 scipy==1.11.4
 seaborn==0.12.2
 segment-analytics-python==2.2.3
@@ -180,6 +181,7 @@ streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==2.5.5
 sympy==1.12
 tenacity @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_cct5tq4h70/croot/tenacity_1682972283326/work
+threadpoolctl==3.4.0
 tiktoken==0.6.0
 toml==0.10.2
 toolz==0.12.0
